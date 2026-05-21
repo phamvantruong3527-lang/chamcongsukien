@@ -1,5 +1,5 @@
 <!-- =========================
-   APP MOBILE PWA - CHẤM CÔNG SỰ KIỆN (BẢN HOÀN CHỈNH TÍCH HỢP ICON ĐỂ RA MÀN HÌNH CHÍNH)
+   APP MOBILE PWA - CHẤM CÔNG SỰ KIỆN (BẢN CHUẨN - CHỐNG MÉO ẢNH)
    Full Code Single File - Bản cập nhật 2026
 ========================= -->
 
@@ -10,16 +10,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="theme-color" content="#0f172a"/>
 
-<title>app chấm công </title>
+<title>Chấm công </title>
 
 <!-- FONTS & ICONS -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- VỊ TRÍ 1: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO ANDROID (Thay link ảnh của bạn vào chỗ src) -->
-<link rel="manifest" href='data:application/manifest+json,{"name":"Work Event App","short_name":"WorkEvent","start_url":".","display":"standalone","background_color":"#081120","theme_color":"#0f172a","orientation":"portrait","icons":[{"src":"https://sf-static.upanhlaylink.com/img/image_20260521353487910335d99c80a8f8fc03ab4aa9.jpg","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
+<!-- VỊ TRÍ 1: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO ANDROID (Thay link ảnh trực tuyến của bạn vào chỗ src nếu muốn) -->
+<link rel="manifest" href='data:application/manifest+json,{"name":"Work Event App","short_name":"WorkEvent","start_url":".","display":"standalone","background_color":"#081120","theme_color":"#0f172a","orientation":"portrait","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2379/2379261.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
 
-<!-- VỊ TRÍ 2: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO IPHONE / SAFARI (Thay link ảnh của bạn vào chỗ href) -->
+<!-- VỊ TRÍ 2: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO IPHONE / SAFARI (Thay link ảnh trực tuyến của bạn vào chỗ href nếu muốn) -->
 <link rel="apple-touch-icon" href="https://sf-static.upanhlaylink.com/img/image_20260521353487910335d99c80a8f8fc03ab4aa9.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -108,13 +108,16 @@ body {
     position: relative;
     width: 56px;
     height: 56px;
+    flex-shrink: 0; /* Không cho phép container bóp méo */
 }
 
 .avatar {
     width: 100%;
     height: 100%;
+    aspect-ratio: 1 / 1; /* Ép tỉ lệ vuông tuyệt đối */
     border-radius: 18px;
-    object-fit: cover;
+    object-fit: cover; /* Chống méo ảnh: Tự động cắt ảnh vừa khít viền */
+    object-position: center; /* Luôn lấy tâm ảnh làm trung tâm */
     border: 2px solid var(--primary);
     box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
     background: #1e293b;
@@ -500,8 +503,8 @@ textarea {
     <div class="topbar">
         <div class="profile-section" id="profileBtn" title="Bấm để sửa thông tin">
             <div class="avatar-container">
-                <!-- VỊ TRÍ 3: ẢNH ĐẠI DIỆN MẶC ĐỊNH TRONG GIAO DIỆN (Thay link ảnh của bạn vào src) -->
-                <img src="https://cdn-icons-png.flaticon.com/512/2379/2379261.png" class="avatar" id="appAvatar" alt="Avatar">
+                <!-- VỊ TRÍ 3: ẢNH ĐẠI DIỆN MẶC ĐỊNH TRONG GIAO DIỆN (Thay link ảnh trực tuyến của bạn vào src nếu muốn) -->
+                <img src="https://sf-static.upanhlaylink.com/img/image_20260521353487910335d99c80a8f8fc03ab4aa9.jpg" class="avatar" id="appAvatar" alt="Avatar">
             </div>
             <div class="profile-info">
                 <h1 id="appNameDisplay">Work Event ✏️</h1>
@@ -567,8 +570,8 @@ textarea {
     </div>
 
     <div class="bottom">
-        🚀 APP CHẤM CÔNG <br>
-        &COPY; ỨNG DỤNG ĐƯỢC PHÁT TRIỀN BỞI ĐỨC TRƯỜNG 
+        🚀 Phân mềm chấm công <br>
+        &copy;Được phát triền và ứng dụng bởi Đức Trường 
     </div>
 </div>
 
