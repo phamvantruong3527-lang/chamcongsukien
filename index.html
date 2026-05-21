@@ -1,467 +1,902 @@
+<!-- =========================
+   APP MOBILE PWA - CHẤM CÔNG SỰ KIỆN (BẢN UPDATE LOGIC CHỌN NGÀY)
+   Full Code Single File
+========================= -->
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chấm Công & Ghi Chú Sự Kiện</title>
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --bg-color: #f5f7fa;
-            --full-color: #2ecc71;  /* Xanh lá - Cả ngày */
-            --am-color: #f1c40f;    /* Vàng - Sáng */
-            --pm-color: #e67e22;    /* Cam - Chiều */
-            --off-color: #e74c3c;   /* Đỏ - Nghỉ */
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0f172a"/>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 15px;
-            color: #333;
-        }
+<title>Chấm công sự kiện</title>
 
-        .container {
-            max-width: 650px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
+<!-- FONTS & ICONS -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-        h2 {
-            text-align: center;
-            color: var(--primary-color);
-            margin-top: 0;
-            text-transform: uppercase;
-            font-size: 18px;
-            letter-spacing: 1px;
-        }
+<link rel="manifest" href="manifest.json">
 
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
+<style>
+:root {
+    /* Theme Tối (Mặc định) */
+    --bg: #081120;
+    --card: rgba(17, 28, 45, 0.8);
+    --card-border: rgba(255, 255, 255, 0.06);
+    --input-bg: #0f172a;
+    --select-bg: #1e293b;
+    --white: #fff;
+    --text: #dbeafe;
+    --muted: #94a3b8;
+    --day-bg: #162234;
+    
+    --primary: #00b4ff;
+    --primary2: #3b82f6;
+    --full: #22c55e;
+    --am: #facc15;
+    --pm: #fb923c;
+    --off: #ef4444;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+}
 
-        select {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-            outline: none;
-            cursor: pointer;
-        }
+/* Biến đổi màu cho Theme Sáng */
+[data-theme="light"] {
+    --bg: #f1f5f9;
+    --card: rgba(255, 255, 255, 0.9);
+    --card-border: rgba(15, 23, 42, 0.08);
+    --input-bg: #f8fafc;
+    --select-bg: #e2e8f0;
+    --white: #0f172a;
+    --text: #1e293b;
+    --muted: #64748b;
+    --day-bg: #e2e8f0;
+    --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
 
-        /* Chú thích màu */
-        .legend {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            font-size: 13px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+body {
+    background-color: var(--bg);
+    background-image: var(--bg-image, 
+        radial-gradient(circle at top right, #11335e 0%, transparent 30%),
+        radial-gradient(circle at bottom left, #0c4a6e 0%, transparent 35%)
+    );
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 
-        .dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            display: inline-block;
-        }
+    color: var(--white);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    min-height: 100vh;
+    padding: 18px;
+    transition: background 0.3s, color 0.3s;
+}
 
-        /* Lịch Grid */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            text-align: center;
-        }
+.app {
+    max-width: 480px;
+    margin: auto;
+}
 
-        .day-name {
-            font-weight: bold;
-            color: #7f8c8d;
-            font-size: 13px;
-            padding-bottom: 5px;
-        }
+/* KHU VỰC THÔNG TIN CÁ NHÂN & TOPBAR */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
 
-        .day {
-            aspect-ratio: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            background: #f8f9fa;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.15s ease;
-            border: 1px solid #e2e8f0;
-            position: relative;
-            user-select: none;
-        }
+.profile-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    flex: 1;
+}
 
-        .day:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
+.avatar-container {
+    position: relative;
+    width: 56px;
+    height: 56px;
+}
 
-        .day.active-day {
-            border: 2px dashed var(--accent-color) !important;
-        }
+.avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    background: #1e293b;
+}
 
-        .day .day-num {
-            font-size: 16px;
-        }
+.profile-info h1 {
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 
-        /* Dấu chấm nhỏ báo hiệu có ghi chú bên dưới */
-        .day .note-dot {
-            width: 5px;
-            height: 5px;
-            background-color: #7f8c8d;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 4px;
-            display: none;
-        }
-        .day.has-note .note-dot {
-            display: block;
-        }
+.profile-info p {
+    font-size: 12px;
+    color: var(--muted);
+}
 
-        .empty {
-            background: transparent;
-            border: none;
-            cursor: default;
-        }
+.action-btns {
+    display: flex;
+    gap: 8px;
+}
 
-        /* Màu sắc các trạng thái */
-        .status-none { background-color: #f8f9fa; color: #333; }
-        .status-full { background-color: var(--full-color); color: white; border-color: var(--full-color); }
-        .status-am { background-color: var(--am-color); color: white; border-color: var(--am-color); }
-        .status-pm { background-color: var(--pm-color); color: white; border-color: var(--pm-color); }
-        .status-off { background-color: var(--off-color); color: white; border-color: var(--off-color); }
+.circle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--card);
+    color: var(--white);
+    border: 1px solid var(--card-border);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+}
 
-        /* Form nhập chi tiết sự kiện */
-        .details-panel {
-            margin-top: 20px;
-            padding: 15px;
-            background: #fdfdfd;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-        }
+.circle-btn:active { transform: scale(0.9); }
 
-        .details-title {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: var(--primary-color);
-        }
+/* POPUP ĐỔI THÔNG TIN CÁ NHÂN */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
 
-        .details-panel input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 14px;
-            outline: none;
-        }
+.modal-content {
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
+    border-radius: 24px;
+}
 
-        .details-panel input:focus {
-            border-color: var(--accent-color);
-        }
+.modal-content h3 {
+    margin-bottom: 16px;
+    font-size: 18px;
+}
 
-        /* Thống kê */
-        .summary {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 2px dashed #eee;
-        }
+.form-group {
+    margin-bottom: 16px;
+}
 
-        .summary-title {
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
 
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background: var(--input-bg);
+    color: var(--white);
+    outline: none;
+}
 
-        .summary-card {
-            background: #f8f9fa;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border-left: 4px solid #ccc;
-        }
+.form-group input[type="file"] { display: none; }
 
-        .summary-card.total { border-left-color: var(--accent-color); }
-        .summary-card.full { border-left-color: var(--full-color); }
-        .summary-card.am { border-left-color: var(--am-color); }
-        .summary-card.pm { border-left-color: var(--pm-color); }
+.file-custom-btn {
+    display: inline-block;
+    padding: 10px 14px;
+    background: var(--select-bg);
+    border-radius: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    border: 1px solid var(--card-border);
+}
 
-        .summary-card div:first-child { font-size: 11px; color: #7f8c8d; }
-        .summary-card div:last-child { font-size: 16px; font-weight: bold; margin-top: 2px; }
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
 
-        .tip {
-            text-align: center;
-            font-size: 11px;
-            color: #95a5a6;
-            margin-top: 15px;
-            line-height: 1.4;
-        }
-    </style>
+.btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-close { background: var(--select-bg); color: var(--white); }
+.btn-save { background: var(--primary2); color: white; }
+
+/* CÁC THÀNH PHẦN GLASSMORPHISM */
+.glass {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(18px);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    transition: background 0.3s, border 0.3s;
+}
+
+.controls {
+    padding: 16px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+select {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    outline: none;
+    border-radius: 16px;
+    background: var(--select-bg);
+    color: var(--white);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.legend {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 6px;
+}
+
+/* LỊCH LÀM VIỆC */
+.calendar-card { padding: 18px; }
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.calendar-header h2 { font-size: 18px; }
+
+.live {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #38bdf8;
+}
+
+.live::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #38bdf8;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+.day-names {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.day-name {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.day {
+    aspect-ratio: 1;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--day-bg);
+    cursor: pointer;
+    position: relative;
+    transition: .2s;
+    overflow: hidden;
+}
+
+.day:hover { transform: translateY(-4px); }
+.day:active { transform: scale(.94); }
+.day-number { font-size: 16px; font-weight: 700; }
+
+.note-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--white);
+    position: absolute;
+    bottom: 8px;
+    opacity: 0;
+}
+
+.has-note .note-dot { opacity: 1; }
+
+.status-none { background: var(--day-bg); }
+.status-full { background: linear-gradient(135deg, #16a34a, #22c55e); color: white; }
+.status-am { background: linear-gradient(135deg, #ca8a04, #facc15); color: white; }
+.status-pm { background: linear-gradient(135deg, #ea580c, #fb923c); color: white; }
+.status-off { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; }
+
+.active { border: 3px solid var(--primary); }
+.empty { visibility: hidden; }
+
+/* KHU VỰC TIÊU ĐỀ GHI CHÚ & NÚT SỬA CÔNG */
+.note-card {
+    margin-top: 18px;
+    padding: 18px;
+}
+
+.note-header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    min-height: 32px;
+}
+
+.note-title {
+    color: #38bdf8;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.edit-status-btn {
+    display: none; /* Chỉ hiện khi chọn 1 ngày cụ thể */
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+.edit-status-btn:active { transform: scale(0.95); }
+
+textarea {
+    width: 100%;
+    min-height: 110px;
+    resize: none;
+    border: none;
+    outline: none;
+    padding: 16px;
+    border-radius: 18px;
+    background: var(--input-bg);
+    color: var(--white);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* THỐNG KÊ */
+.stats {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.stat {
+    padding: 18px;
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat::before {
+    content: "";
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, .08);
+    border-radius: 50%;
+}
+
+.stat h3 { font-size: 13px; margin-bottom: 10px; color: #dbeafe; }
+.stat p { font-size: 30px; font-weight: 700; color: white; }
+
+.full-card { background: linear-gradient(135deg, #15803d, #22c55e); }
+.am-card { background: linear-gradient(135deg, #ca8a04, #facc15); }
+.pm-card { background: linear-gradient(135deg, #ea580c, #fb923c); }
+.total-card { background: linear-gradient(135deg, #0284c7, #2563eb); }
+
+.bottom {
+    text-align: center;
+    margin-top: 26px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.install-btn {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 64px;
+    height: 64px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: white;
+    font-size: 28px;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, .5);
+    cursor: pointer;
+    display: none;
+    z-index: 99;
+}
+
+.fade-in { animation: fade .4s ease; }
+@keyframes fade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
 </head>
+
 <body>
 
-<div class="container">
-    <h2>Chấm Công & Sự Kiện Cá Nhân</h2>
+<div class="app fade-in">
 
-    <div class="controls">
+    <!-- HEADER & PROFILE -->
+    <div class="topbar">
+        <div class="profile-section" id="profileBtn" title="Bấm để sửa thông tin">
+            <div class="avatar-container">
+                <img src="https://cdn-icons-png.flaticon.com/512/2379/2379261.png" class="avatar" id="appAvatar" alt="Avatar">
+            </div>
+            <div class="profile-info">
+                <h1 id="appNameDisplay">Work Event ✏️</h1>
+                <p id="appSloganDisplay">Quản lý công việc & sự kiện</p>
+            </div>
+        </div>
+        <div class="action-btns">
+            <button class="circle-btn" id="themeToggleBtn" title="Đổi chế độ Sáng/Tối">🌓</button>
+        </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="glass controls">
         <select id="monthSelect"></select>
         <select id="yearSelect"></select>
     </div>
 
-    <!-- Chú thích đổi mới -->
-    <div class="legend">
-        <div class="legend-item"><span class="dot" style="background: #f8f9fa; border: 1px solid #ccc;"></span> Trống</div>
-        <div class="legend-item"><span class="dot" style="background: var(--full-color);"></span> Full ngày (1)</div>
-        <div class="legend-item"><span class="dot" style="background: var(--am-color);"></span> Sáng (0.5)</div>
-        <div class="legend-item"><span class="dot" style="background: var(--pm-color);"></span> Chiều (0.5)</div>
-        <div class="legend-item"><span class="dot" style="background: var(--off-color);"></span> Nghỉ (0)</div>
+    <!-- LEGEND -->
+    <div class="glass legend">
+        <div class="legend-item"><span class="dot" style="background:#22c55e"></span>Full ngày</div>
+        <div class="legend-item"><span class="dot" style="background:#facc15"></span>Ca sáng</div>
+        <div class="legend-item"><span class="dot" style="background:#fb923c"></span>Ca chiều</div>
+        <div class="legend-item"><span class="dot" style="background:#ef4444"></span>Nghỉ</div>
     </div>
 
-    <!-- Lịch -->
-    <div class="calendar-grid" id="calendarGrid"></div>
-
-    <!-- Panel điền thông tin sự kiện -->
-    <div class="details-panel">
-        <div class="details-title" id="selectedDateTitle">Chọn một ngày trên lịch để xem/nhập thông tin</div>
-        <input type="text" id="eventNoteInput" placeholder="Hôm nay làm cho ai? Sự kiện gì? (VD: Khách Đức Trường, đám cưới Quang Thực...)" disabled>
+    <!-- CALENDAR -->
+    <div class="glass calendar-card">
+        <div class="calendar-header">
+            <h2>📆 Lịch làm việc</h2>
+            <div class="live">Đang hoạt động</div>
+        </div>
+        <div class="day-names" id="dayNames"></div>
+        <div class="calendar-grid" id="calendarGrid"></div>
     </div>
 
-    <!-- Thống kê quy đổi công -->
-    <div class="summary">
-        <div class="summary-title">Báo cáo tháng này:</div>
-        <div class="summary-grid">
-            <div class="summary-card full">
-                <div>Cả ngày (Full)</div>
-                <div id="countFull">0</div>
-            </div>
-            <div class="summary-card am">
-                <div>Nửa buổi Sáng</div>
-                <div id="countAm">0</div>
-            </div>
-            <div class="summary-card pm">
-                <div>Nửa buổi Chiều</div>
-                <div id="countPm">0</div>
-            </div>
-            <div class="summary-card total">
-                <div>Tổng công tính lương</div>
-                <div id="countTotal" style="color: var(--accent-color);">0</div>
-            </div>
+    <!-- NOTE -->
+    <div class="glass note-card">
+        <div class="note-header-wrapper">
+            <div class="note-title" id="noteTitle">✨ Chọn ngày để ghi chú</div>
+            <button class="edit-status-btn" id="editStatusBtn">🔄 Đổi ca / Sửa</button>
+        </div>
+        <textarea id="noteInput" placeholder="Ví dụ: Làm show Đức Trường, tiệc cưới Quang Thực..." disabled></textarea>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+        <div class="stat full-card">
+            <h3>🌟 Full ngày</h3>
+            <p id="fullCount">0</p>
+        </div>
+        <div class="stat am-card">
+            <h3>🌤️ Ca sáng</h3>
+            <p id="amCount">0</p>
+        </div>
+        <div class="stat pm-card">
+            <h3>🌆 Ca chiều</h3>
+            <p id="pmCount">0</p>
+        </div>
+        <div class="stat total-card">
+            <h3>💰 Tổng công</h3>
+            <p id="totalCount">0</p>
         </div>
     </div>
 
-    <div class="tip">
-        💡 <b>Mẹo nhanh:</b> Bấm vào ngày để đổi màu chấm công.<br>
-        Nhìn xuống ô dưới để điền tên đối tác/chủ show ngày hôm đó. Hệ thống tự động lưu!
+    <div class="bottom">
+        🚀 App Chấm Công <br>
+        &copy; Được phát triển và vận hành bởi Đức Trường 
     </div>
 </div>
 
+<!-- MODAL CÀI ĐẶT THÔNG TIN -->
+<div class="modal" id="profileModal">
+    <div class="glass modal-content">
+        <h3>⚙️ Thiết lập cá nhân</h3>
+        
+        <div class="form-group">
+            <label>Tên hiển thị</label>
+            <input type="text" id="inputName" placeholder="Nhập tên của bạn...">
+        </div>
+        
+        <div class="form-group">
+            <label>Tiêu đề phụ / Slogan</label>
+            <input type="text" id="inputSlogan" placeholder="Quản lý công việc & sự kiện">
+        </div>
+        
+        <div class="form-group" style="display: flex; gap: 10px;">
+            <div>
+                <label>Ảnh đại diện</label>
+                <label class="file-custom-btn" for="uploadAvatar">🖼️ Chọn ảnh</label>
+                <input type="file" id="uploadAvatar" accept="image/*">
+            </div>
+            <div>
+                <label>Ảnh nền nền</label>
+                <label class="file-custom-btn" for="uploadBg">🌄 Chọn ảnh</label>
+                <input type="file" id="uploadBg" accept="image/*">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <button class="file-custom-btn" id="resetBgBtn" style="background:#ef4444; color:white; border:none; width:100%; text-align:center;">Xóa ảnh nền về mặc định</button>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-close" id="closeModalBtn">Hủy</button>
+            <button class="btn btn-save" id="saveProfileBtn">Lưu lại</button>
+        </div>
+    </div>
+</div>
+
+<button class="install-btn" id="installBtn">⬇️</button>
+
 <script>
-    const monthSelect = document.getElementById('monthSelect');
-    const yearSelect = document.getElementById('yearSelect');
-    const calendarGrid = document.getElementById('calendarGrid');
-    const selectedDateTitle = document.getElementById('selectedDateTitle');
-    const eventNoteInput = document.getElementById('eventNoteInput');
+const monthSelect = document.getElementById("monthSelect");
+const yearSelect = document.getElementById("yearSelect");
+const calendarGrid = document.getElementById("calendarGrid");
+const dayNamesContainer = document.getElementById("dayNames");
+const noteInput = document.getElementById("noteInput");
+const noteTitle = document.getElementById("noteTitle");
+const editStatusBtn = document.getElementById("editStatusBtn");
 
-    const dayNames = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-    const statusCycle = ['none', 'full', 'am', 'pm', 'off'];
+const statusCycle = ["none","full","am","pm","off"];
+const dayNames = ["T2","T3","T4","T5","T6","T7","CN"];
 
-    let currentDate = new Date();
-    let selectedDateKey = null; // Ngày đang chọn để ghi chú
+let currentDate = new Date();
+let selectedKey = null;
 
-    // Tạo dropdown tháng/năm
-    for (let m = 0; m < 12; m++) {
-        let opt = document.createElement('option');
-        opt.value = m; opt.textContent = `Tháng ${m + 1}`;
-        if (m === currentDate.getMonth()) opt.selected = true;
-        monthSelect.appendChild(opt);
+// Khởi tạo hàng tên thứ
+dayNames.forEach(day=>{
+    const div=document.createElement("div");
+    div.className="day-name";
+    div.textContent=day;
+    dayNamesContainer.appendChild(div);
+});
+
+// Thêm danh sách tháng
+for(let m=0;m<12;m++){
+    const opt=document.createElement("option");
+    opt.value=m;
+    opt.textContent=`Tháng ${m+1}`;
+    if(m===currentDate.getMonth()) opt.selected=true;
+    monthSelect.appendChild(opt);
+}
+
+// Thêm danh sách năm
+for(let y=currentDate.getFullYear()-1;y<=currentDate.getFullYear()+5;y++){
+    const opt=document.createElement("option");
+    opt.value=y;
+    opt.textContent=`Năm ${y}`;
+    if(y===currentDate.getFullYear()) opt.selected=true;
+    yearSelect.appendChild(opt);
+}
+
+function getData(){ return JSON.parse(localStorage.getItem("work_event_app") || "{}"); }
+function saveData(data){ localStorage.setItem("work_event_app",JSON.stringify(data)); }
+
+// VẼ LỊCH CHẤM CÔNG
+function renderCalendar(){
+    calendarGrid.innerHTML="";
+    const month=parseInt(monthSelect.value);
+    const year=parseInt(yearSelect.value);
+    const data=getData();
+
+    noteInput.disabled=true;
+    noteInput.value="";
+    noteTitle.innerHTML="✨ Chọn ngày để ghi chú";
+    editStatusBtn.style.display = "none"; // Ẩn nút sửa khi đổi tháng/năm
+    selectedKey = null;
+
+    let firstDay=new Date(year,month,1).getDay()-1;
+    if(firstDay===-1) firstDay=6;
+
+    const totalDays=new Date(year,month+1,0).getDate();
+
+    for(let i=0;i<firstDay;i++){
+        const empty=document.createElement("div");
+        empty.className="empty";
+        calendarGrid.appendChild(empty);
     }
-    for (let y = currentDate.getFullYear() - 1; y <= currentDate.getFullYear() + 2; y++) {
-        let opt = document.createElement('option');
-        opt.value = y; opt.textContent = `Năm ${y}`;
-        if (y === currentDate.getFullYear()) opt.selected = true;
-        yearSelect.appendChild(opt);
-    }
 
-    // Lấy & Lưu Data tổng hợp (gồm cả trạng thái công và note)
-    function getStoredData() {
-        const data = localStorage.getItem('event_attendance_v2');
-        return data ? JSON.parse(data) : {};
-    }
-    function saveStoredData(data) {
-        localStorage.setItem('event_attendance_v2', JSON.stringify(data));
-    }
+    for(let day=1;day<=totalDays;day++){
+        const dayDiv=document.createElement("div");
+        const key=`${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+        const info=data[key] || { status:"none", note:"" };
 
-    // Render toàn bộ lịch
-    function renderCalendar() {
-        calendarGrid.innerHTML = '';
-        const month = parseInt(monthSelect.value);
-        const year = parseInt(yearSelect.value);
-        const storedData = getStoredData();
+        dayDiv.className=`day status-${info.status}`;
+        if(info.note && info.note.trim()!=="") dayDiv.classList.add("has-note");
 
-        // Đóng input ghi chú khi đổi tháng (chưa chọn ngày cụ thể)
-        eventNoteInput.disabled = true;
-        eventNoteInput.value = '';
-        selectedDateTitle.textContent = "Chọn một ngày trên lịch để xem/nhập thông tin";
-        selectedDateKey = null;
+        if(selectedKey === key) dayDiv.classList.add("active");
 
-        // Vẽ hàng Thứ
-        dayNames.forEach(name => {
-            const div = document.createElement('div');
-            div.className = 'day-name';
-            div.textContent = name;
-            calendarGrid.appendChild(div);
+        dayDiv.innerHTML=`
+            <div class="day-number">${day}</div>
+            <div class="note-dot"></div>
+        `;
+
+        // SỰ KIỆN CLICK VÀO NGÀY (CHỈ XEM - KHÔNG LÀM MẤT CÔNG NỮA)
+        dayDiv.addEventListener("click",()=>{
+            document.querySelectorAll(".day").forEach(d=>d.classList.remove("active"));
+            dayDiv.classList.add("active");
+
+            selectedKey=key;
+            noteInput.disabled=false;
+            noteTitle.innerHTML=`📝 Ghi chú ngày ${day}/${month+1}/${year}`;
+            
+            // Lấy data mới nhất để hiển thị ra ô nhập
+            const currentData = getData();
+            const dayInfo = currentData[key] || { status:"none", note:"" };
+            noteInput.value = dayInfo.note || "";
+
+            // Hiện nút "Đổi ca / Sửa" ở bên cạnh
+            editStatusBtn.style.display = "block";
+            
+            navigator.vibrate?.(15);
         });
 
-        let firstDayIndex = new Date(year, month, 1).getDay() - 1;
-        if (firstDayIndex === -1) firstDayIndex = 6;
-        const totalDays = new Date(year, month + 1, 0).getDate();
+        calendarGrid.appendChild(dayDiv);
+    }
+    calculateStats();
+}
 
-        // Ô trống đầu tháng
-        for (let i = 0; i < firstDayIndex; i++) {
-            const emptyDiv = document.createElement('div');
-            emptyDiv.className = 'day empty';
-            calendarGrid.appendChild(emptyDiv);
-        }
+// SỰ KIỆN CLICK VÀO NÚT "SỬA CÔNG" BÊN CẠNH
+editStatusBtn.addEventListener("click", () => {
+    if(!selectedKey) return;
+    
+    const data = getData();
+    if(!data[selectedKey]) data[selectedKey] = { status:"none", note:"" };
+    
+    let info = data[selectedKey];
+    
+    // Tiến hành xoay vòng trạng thái ca làm việc
+    let next = (statusCycle.indexOf(info.status) + 1) % statusCycle.length;
+    info.status = statusCycle[next];
 
-        // Tạo ngày
-        for (let day = 1; day <= totalDays; day++) {
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'day';
-            
-            const numSpan = document.createElement('span');
-            numSpan.className = 'day-num';
-            numSpan.textContent = day;
-            dayDiv.appendChild(numSpan);
+    // Lưu lại dữ liệu
+    data[selectedKey] = info;
+    saveData(data);
 
-            const dotSpan = document.createElement('span');
-            dotSpan.className = 'note-dot';
-            dayDiv.appendChild(dotSpan);
-
-            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            
-            // Đọc dữ liệu ngày nếu có
-            let dayData = storedData[dateKey] || { status: 'none', note: '' };
-            dayDiv.classList.add(`status-${dayData.status}`);
-            if (dayData.note && dayData.note.trim() !== '') {
-                dayDiv.classList.add('has-note');
-            }
-
-            // Click vào ngày
-            dayDiv.addEventListener('click', (e) => {
-                // Xóa viền active cũ, thêm viền active mới
-                document.querySelectorAll('.day').forEach(d => d.classList.remove('active-day'));
-                dayDiv.classList.add('active-day');
-
-                // Kích hoạt ô nhập ghi chú
-                selectedDateKey = dateKey;
-                selectedDateTitle.textContent = `Thông tin ngày ${day}/${month + 1}/${year}:`;
-                eventNoteInput.disabled = false;
-                
-                const currentData = getStoredData()[dateKey] || { status: 'none', note: '' };
-                eventNoteInput.value = currentData.note || '';
-
-                // Nếu click trúng chính số ngày hoặc ô, đổi trạng thái công luôn
-                if(e.target.classList.contains('day') || e.target.classList.contains('day-num')) {
-                    let nextIndex = (statusCycle.indexOf(dayData.status) + 1) % statusCycle.length;
-                    let nextStatus = statusCycle[nextIndex];
-
-                    dayDiv.classList.remove(`status-${dayData.status}`);
-                    dayDiv.classList.add(`status-${nextStatus}`);
-                    dayData.status = nextStatus;
-
-                    const updateObj = getStoredData();
-                    if (!updateObj[dateKey]) updateObj[dateKey] = { status: 'none', note: '' };
-                    updateObj[dateKey].status = nextStatus;
-                    
-                    saveStoredData(updateObj);
-                    calculateStats();
-                }
-            });
-
-            calendarGrid.appendChild(dayDiv);
-        }
-        calculateStats();
+    // Cập nhật giao diện của ngày đang chọn ngay lập tức
+    const activeDay = calendarGrid.querySelector(".day.active");
+    if(activeDay) {
+        activeDay.className = `day active status-${info.status}`;
+        if(info.note && info.note.trim() !== "") activeDay.classList.add("has-note");
     }
 
-    // Bắt sự kiện khi gõ chữ vào ô ghi chú
-    eventNoteInput.addEventListener('input', () => {
-        if (!selectedDateKey) return;
-        
-        const text = eventNoteInput.value;
-        const updateObj = getStoredData();
-        
-        if (!updateObj[selectedDateKey]) updateObj[selectedDateKey] = { status: 'none', note: '' };
-        updateObj[selectedDateKey].note = text;
-        
-        saveStoredData(updateObj);
+    calculateStats();
+    navigator.vibrate?.(30);
+});
 
-        // Cập nhật ngay lập tức dấu chấm báo hiệu trên lịch
-        const activeDayNode = document.querySelector('.day.active-day');
-        if (activeDayNode) {
-            if (text.trim() !== '') {
-                activeDayNode.classList.add('has-note');
-            } else {
-                activeDayNode.classList.remove('has-note');
-            }
+// TỰ ĐỘNG LƯU GHI CHÚ KHI GÕ
+noteInput.addEventListener("input",()=>{
+    if(!selectedKey) return;
+    const data=getData();
+    if(!data[selectedKey]) data[selectedKey]={ status:"none", note:"" };
+
+    data[selectedKey].note=noteInput.value;
+    saveData(data);
+
+    const activeDay = calendarGrid.querySelector(".day.active");
+    if(activeDay) {
+        if(noteInput.value.trim() !== "") activeDay.classList.add("has-note");
+        else activeDay.classList.remove("has-note");
+    }
+});
+
+// TÍNH TOÁN SỐ CÔNG
+function calculateStats(){
+    const month=parseInt(monthSelect.value);
+    const year=parseInt(yearSelect.value);
+    const prefix=`${year}-${String(month+1).padStart(2,"0")}`;
+    const data=getData();
+
+    let full=0, am=0, pm=0;
+
+    Object.entries(data).forEach(([key,val])=>{
+        if(key.startsWith(prefix)){
+            if(val.status==="full") full++;
+            if(val.status==="am") am++;
+            if(val.status==="pm") pm++;
         }
     });
 
-    // Tính toán thống kê hàng tháng
-    function calculateStats() {
-        const month = parseInt(monthSelect.value);
-        const year = parseInt(yearSelect.value);
-        const storedData = getStoredData();
+    let total=full + am*0.5 + pm*0.5;
 
-        let full = 0, am = 0, pm = 0;
-        const prefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
+    document.getElementById("fullCount").innerText=full;
+    document.getElementById("amCount").innerText=am;
+    document.getElementById("pmCount").innerText=pm;
+    document.getElementById("totalCount").innerText=total;
+}
 
-        for (const [key, val] of Object.entries(storedData)) {
-            if (key.startsWith(prefix)) {
-                if (val.status === 'full') full++;
-                if (val.status === 'am') am++;
-                if (val.status === 'pm') pm++;
-            }
-        }
+monthSelect.addEventListener("change",renderCalendar);
+yearSelect.addEventListener("change",renderCalendar);
 
-        // Sáng 0.5 công, Chiều 0.5 công, Cả ngày 1 công
-        let total = full + (am * 0.5) + (pm * 0.5);
 
-        document.getElementById('countFull').textContent = full;
-        document.getElementById('countAm').textContent = am;
-        document.getElementById('countPm').textContent = pm;
-        document.getElementById('countTotal').textContent = total;
-    }
+// CHẾ ĐỘ THEME
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+let currentTheme = localStorage.getItem("app_theme") || "dark";
+document.documentElement.setAttribute("data-theme", currentTheme);
+updateThemeButtonIcon();
 
-    monthSelect.addEventListener('change', renderCalendar);
-    yearSelect.addEventListener('change', renderCalendar);
-    renderCalendar();
+themeToggleBtn.addEventListener("click", () => {
+    currentTheme = currentTheme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", currentTheme);
+    localStorage.setItem("app_theme", currentTheme);
+    updateThemeButtonIcon();
+});
+function updateThemeButtonIcon() { themeToggleBtn.innerText = currentTheme === "dark" ? "☀️" : "🌙"; }
+
+
+// THIẾT LẬP CÁ NHÂN
+const profileBtn = document.getElementById("profileBtn");
+const profileModal = document.getElementById("profileModal");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+const resetBgBtn = document.getElementById("resetBgBtn");
+const inputName = document.getElementById("inputName");
+const inputSlogan = document.getElementById("inputSlogan");
+const uploadAvatar = document.getElementById("uploadAvatar");
+const uploadBg = document.getElementById("uploadBg");
+const appAvatar = document.getElementById("appAvatar");
+const appNameDisplay = document.getElementById("appNameDisplay");
+const appSloganDisplay = document.getElementById("appSloganDisplay");
+
+function loadProfile() {
+    const name = localStorage.getItem("profile_name") || "Work Event";
+    const slogan = localStorage.getItem("profile_slogan") || "Quản lý công việc & sự kiện";
+    const avatar = localStorage.getItem("profile_avatar");
+    const bg = localStorage.getItem("profile_bg");
+
+    appNameDisplay.innerText = name + " ✏️";
+    appSloganDisplay.innerText = slogan;
+    if (avatar) appAvatar.src = avatar;
+    if (bg) document.body.style.setProperty("--bg-image", `url(${bg})`);
+}
+
+profileBtn.addEventListener("click", () => {
+    inputName.value = appNameDisplay.innerText.replace(" ✏️", "");
+    inputSlogan.value = appSloganDisplay.innerText;
+    profileModal.style.display = "flex";
+});
+closeModalBtn.addEventListener("click", () => { profileModal.style.display = "none"; });
+
+function encodeImageFileAsURL(element, callback) {
+    var file = element.files[0];
+    if(!file) return callback(null);
+    var reader = new FileReader();
+    reader.onloadend = function() { callback(reader.result); }
+    reader.readAsDataURL(file);
+}
+
+saveProfileBtn.addEventListener("click", () => {
+    localStorage.setItem("profile_name", inputName.value.trim() || "Work Event");
+    localStorage.setItem("profile_slogan", inputSlogan.value.trim() || "Quản lý công việc & sự kiện");
+
+    encodeImageFileAsURL(uploadAvatar, function(avatarBase64) {
+        if(avatarBase64) localStorage.setItem("profile_avatar", avatarBase64);
+        encodeImageFileAsURL(uploadBg, function(bgBase64) {
+            if(bgBase64) localStorage.setItem("profile_bg", bgBase64);
+            loadProfile();
+            profileModal.style.display = "none";
+        });
+    });
+});
+
+resetBgBtn.addEventListener("click", () => {
+    localStorage.removeItem("profile_bg");
+    document.body.style.removeProperty("--bg-image");
+    alert("Đã xóa ảnh nền tùy chỉnh!");
+});
+
+loadProfile();
+renderCalendar();
+
+
+// PWA SYSTEM
+let deferredPrompt;
+const installBtn=document.getElementById("installBtn");
+window.addEventListener("beforeinstallprompt",(e)=>{
+    e.preventDefault();
+    deferredPrompt=e;
+    installBtn.style.display="block";
+});
+installBtn.addEventListener("click",async()=>{
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt=null;
+    installBtn.style.display="none";
+});
+
+if("serviceWorker" in navigator){
+    const swCode=`
+    const CACHE_NAME='work-event-cache-v3';
+    self.addEventListener('install',event=>{
+        self.skipWaiting();
+        event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(['./'])));
+    });
+    self.addEventListener('fetch',event=>{
+        event.respondWith(caches.match(event.request).then(res=>res||fetch(event.request)));
+    });
+    `;
+    const blob=new Blob([swCode],{type:'application/javascript'});
+    const swURL=URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swURL).catch(err => console.log(err));
+}
 </script>
 
 </body>
