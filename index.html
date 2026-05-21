@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chấm Công & Ghi Chú Sự Kiện</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f5f7fa;
+            --full-color: #2ecc71;  /* Xanh lá - Cả ngày */
+            --am-color: #f1c40f;    /* Vàng - Sáng */
+            --pm-color: #e67e22;    /* Cam - Chiều */
+            --off-color: #e74c3c;   /* Đỏ - Nghỉ */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 15px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-top: 0;
+            text-transform: uppercase;
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Chú thích màu */
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 13px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        /* Lịch Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .day-name {
+            font-weight: bold;
+            color: #7f8c8d;
+            font-size: 13px;
+            padding-bottom: 5px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            border: 1px solid #e2e8f0;
+            position: relative;
+            user-select: none;
+        }
+
+        .day:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .day.active-day {
+            border: 2px dashed var(--accent-color) !important;
+        }
+
+        .day .day-num {
+            font-size: 16px;
+        }
+
+        /* Dấu chấm nhỏ báo hiệu có ghi chú bên dưới */
+        .day .note-dot {
+            width: 5px;
+            height: 5px;
+            background-color: #7f8c8d;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 4px;
+            display: none;
+        }
+        .day.has-note .note-dot {
+            display: block;
+        }
+
+        .empty {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        /* Màu sắc các trạng thái */
+        .status-none { background-color: #f8f9fa; color: #333; }
+        .status-full { background-color: var(--full-color); color: white; border-color: var(--full-color); }
+        .status-am { background-color: var(--am-color); color: white; border-color: var(--am-color); }
+        .status-pm { background-color: var(--pm-color); color: white; border-color: var(--pm-color); }
+        .status-off { background-color: var(--off-color); color: white; border-color: var(--off-color); }
+
+        /* Form nhập chi tiết sự kiện */
+        .details-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fdfdfd;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .details-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .details-panel input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .details-panel input:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* Thống kê */
+        .summary {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px dashed #eee;
+        }
+
+        .summary-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .summary-card {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 4px solid #ccc;
+        }
+
+        .summary-card.total { border-left-color: var(--accent-color); }
+        .summary-card.full { border-left-color: var(--full-color); }
+        .summary-card.am { border-left-color: var(--am-color); }
+        .summary-card.pm { border-left-color: var(--pm-color); }
+
+        .summary-card div:first-child { font-size: 11px; color: #7f8c8d; }
+        .summary-card div:last-child { font-size: 16px; font-weight: bold; margin-top: 2px; }
+
+        .tip {
+            text-align: center;
+            font-size: 11px;
+            color: #95a5a6;
+            margin-top: 15px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Chấm Công & Sự Kiện Cá Nhân</h2>
+
+    <div class="controls">
+        <select id="monthSelect"></select>
+        <select id="yearSelect"></select>
+    </div>
+
+    <!-- Chú thích đổi mới -->
+    <div class="legend">
+        <div class="legend-item"><span class="dot" style="background: #f8f9fa; border: 1px solid #ccc;"></span> Trống</div>
+        <div class="legend-item"><span class="dot" style="background: var(--full-color);"></span> Full ngày (1)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--am-color);"></span> Sáng (0.5)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--pm-color);"></span> Chiều (0.5)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--off-color);"></span> Nghỉ (0)</div>
+    </div>
+
+    <!-- Lịch -->
+    <div class="calendar-grid" id="calendarGrid"></div>
+
+    <!-- Panel điền thông tin sự kiện -->
+    <div class="details-panel">
+        <div class="details-title" id="selectedDateTitle">Chọn một ngày trên lịch để xem/nhập thông tin</div>
+        <input type="text" id="eventNoteInput" placeholder="Hôm nay làm cho ai? Sự kiện gì? (VD: Khách Đức Trường, đám cưới Quang Thực...)" disabled>
+    </div>
+
+    <!-- Thống kê quy đổi công -->
+    <div class="summary">
+        <div class="summary-title">Báo cáo tháng này:</div>
+        <div class="summary-grid">
+            <div class="summary-card full">
+                <div>Cả ngày (Full)</div>
+                <div id="countFull">0</div>
+            </div>
+            <div class="summary-card am">
+                <div>Nửa buổi Sáng</div>
+                <div id="countAm">0</div>
+            </div>
+            <div class="summary-card pm">
+                <div>Nửa buổi Chiều</div>
+                <div id="countPm">0</div>
+            </div>
+            <div class="summary-card total">
+                <div>Tổng công tính lương</div>
+                <div id="countTotal" style="color: var(--accent-color);">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tip">
+        💡 <b>Mẹo nhanh:</b> Bấm vào ngày để đổi màu chấm công.<br>
+        Nhìn xuống ô dưới để điền tên đối tác/chủ show ngày hôm đó. Hệ thống tự động lưu!
+    </div>
+</div>
+
+<script>
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    const calendarGrid = document.getElementById('calendarGrid');
+    const selectedDateTitle = document.getElementById('selectedDateTitle');
+    const eventNoteInput = document.getElementById('eventNoteInput');
+
+    const dayNames = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    const statusCycle = ['none', 'full', 'am', 'pm', 'off'];
+
+    let currentDate = new Date();
+    let selectedDateKey = null; // Ngày đang chọn để ghi chú
+
+    // Tạo dropdown tháng/năm
+    for (let m = 0; m < 12; m++) {
+        let opt = document.createElement('option');
+        opt.value = m; opt.textContent = `Tháng ${m + 1}`;
+        if (m === currentDate.getMonth()) opt.selected = true;
+        monthSelect.appendChild(opt);
+    }
+    for (let y = currentDate.getFullYear() - 1; y <= currentDate.getFullYear() + 2; y++) {
+        let opt = document.createElement('option');
+        opt.value = y; opt.textContent = `Năm ${y}`;
+        if (y === currentDate.getFullYear()) opt.selected = true;
+        yearSelect.appendChild(opt);
+    }
+
+    // Lấy & Lưu Data tổng hợp (gồm cả trạng thái công và note)
+    function getStoredData() {
+        const data = localStorage.getItem('event_attendance_v2');
+        return data ? JSON.parse(data) : {};
+    }
+    function saveStoredData(data) {
+        localStorage.setItem('event_attendance_v2', JSON.stringify(data));
+    }
+
+    // Render toàn bộ lịch
+    function renderCalendar() {
+        calendarGrid.innerHTML = '';
+        const month = parseInt(monthSelect.value);
+        const year = parseInt(yearSelect.value);
+        const storedData = getStoredData();
+
+        // Đóng input ghi chú khi đổi tháng (chưa chọn ngày cụ thể)
+        eventNoteInput.disabled = true;
+        eventNoteInput.value = '';
+        selectedDateTitle.textContent = "Chọn một ngày trên lịch để xem/nhập thông tin";
+        selectedDateKey = null;
+
+        // Vẽ hàng Thứ
+        dayNames.forEach(name => {
+            const div = document.createElement('div');
+            div.className = 'day-name';
+            div.textContent = name;
+            calendarGrid.appendChild(div);
+        });
+
+        let firstDayIndex = new Date(year, month, 1).getDay() - 1;
+        if (firstDayIndex === -1) firstDayIndex = 6;
+        const totalDays = new Date(year, month + 1, 0).getDate();
+
+        // Ô trống đầu tháng
+        for (let i = 0; i < firstDayIndex; i++) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'day empty';
+            calendarGrid.appendChild(emptyDiv);
+        }
+
+        // Tạo ngày
+        for (let day = 1; day <= totalDays; day++) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'day';
+            
+            const numSpan = document.createElement('span');
+            numSpan.className = 'day-num';
+            numSpan.textContent = day;
+            dayDiv.appendChild(numSpan);
+
+            const dotSpan = document.createElement('span');
+            dotSpan.className = 'note-dot';
+            dayDiv.appendChild(dotSpan);
+
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            // Đọc dữ liệu ngày nếu có
+            let dayData = storedData[dateKey] || { status: 'none', note: '' };
+            dayDiv.classList.add(`status-${dayData.status}`);
+            if (dayData.note && dayData.note.trim() !== '') {
+                dayDiv.classList.add('has-note');
+            }
+
+            // Click vào ngày
+            dayDiv.addEventListener('click', (e) => {
+                // Xóa viền active cũ, thêm viền active mới
+                document.querySelectorAll('.day').forEach(d => d.classList.remove('active-day'));
+                dayDiv.classList.add('active-day');
+
+                // Kích hoạt ô nhập ghi chú
+                selectedDateKey = dateKey;
+                selectedDateTitle.textContent = `Thông tin ngày ${day}/${month + 1}/${year}:`;
+                eventNoteInput.disabled = false;
+                
+                const currentData = getStoredData()[dateKey] || { status: 'none', note: '' };
+                eventNoteInput.value = currentData.note || '';
+
+                // Nếu click trúng chính số ngày hoặc ô, đổi trạng thái công luôn
+                if(e.target.classList.contains('day') || e.target.classList.contains('day-num')) {
+                    let nextIndex = (statusCycle.indexOf(dayData.status) + 1) % statusCycle.length;
+                    let nextStatus = statusCycle[nextIndex];
+
+                    dayDiv.classList.remove(`status-${dayData.status}`);
+                    dayDiv.classList.add(`status-${nextStatus}`);
+                    dayData.status = nextStatus;
+
+                    const updateObj = getStoredData();
+                    if (!updateObj[dateKey]) updateObj[dateKey] = { status: 'none', note: '' };
+                    updateObj[dateKey].status = nextStatus;
+                    
+                    saveStoredData(updateObj);
+                    calculateStats();
+                }
+            });
+
+            calendarGrid.appendChild(dayDiv);
+        }
+        calculateStats();
+    }
+
+    // Bắt sự kiện khi gõ chữ vào ô ghi chú
+    eventNoteInput.addEventListener('input', () => {
+        if (!selectedDateKey) return;
+        
+        const text = eventNoteInput.value;
+        const updateObj = getStoredData();
+        
+        if (!updateObj[selectedDateKey]) updateObj[selectedDateKey] = { status: 'none', note: '' };
+        updateObj[selectedDateKey].note = text;
+        
+        saveStoredData(updateObj);
+
+        // Cập nhật ngay lập tức dấu chấm báo hiệu trên lịch
+        const activeDayNode = document.querySelector('.day.active-day');
+        if (activeDayNode) {
+            if (text.trim() !== '') {
+                activeDayNode.classList.add('has-note');
+            } else {
+                activeDayNode.classList.remove('has-note');
+            }
+        }
+    });
+
+    // Tính toán thống kê hàng tháng
+    function calculateStats() {
+        const month = parseInt(monthSelect.value);
+        const year = parseInt(yearSelect.value);
+        const storedData = getStoredData();
+
+        let full = 0, am = 0, pm = 0;
+        const prefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
+
+        for (const [key, val] of Object.entries(storedData)) {
+            if (key.startsWith(prefix)) {
+                if (val.status === 'full') full++;
+                if (val.status === 'am') am++;
+                if (val.status === 'pm') pm++;
+            }
+        }
+
+        // Sáng 0.5 công, Chiều 0.5 công, Cả ngày 1 công
+        let total = full + (am * 0.5) + (pm * 0.5);
+
+        document.getElementById('countFull').textContent = full;
+        document.getElementById('countAm').textContent = am;
+        document.getElementById('countPm').textContent = pm;
+        document.getElementById('countTotal').textContent = total;
+    }
+
+    monthSelect.addEventListener('change', renderCalendar);
+    yearSelect.addEventListener('change', renderCalendar);
+    renderCalendar();
+</script>
+
+</body>
+</html>
