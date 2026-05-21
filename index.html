@@ -1,6 +1,6 @@
 <!-- =========================
-   APP MOBILE PWA - CHẤM CÔNG SỰ KIỆN (BẢN TÍCH HỢP ICON MÀN HÌNH CHÍNH)
-   Full Code Single File
+   APP MOBILE PWA - CHẤM CÔNG SỰ KIỆN (BẢN HOÀN CHỈNH TÍCH HỢP ICON ĐỂ RA MÀN HÌNH CHÍNH)
+   Full Code Single File - Bản cập nhật 2026
 ========================= -->
 
 <!DOCTYPE html>
@@ -10,17 +10,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="theme-color" content="#0f172a"/>
 
-<title>Work Event App</title>
+<title>app chấm công </title>
 
 <!-- FONTS & ICONS -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- EMBEDDED PWA MANIFEST (CẤU HÌNH ẢNH BÌA / ICON RA MÀN HÌNH CHÍNH) -->
-<link rel="manifest" href='data:application/manifest+json,{"name":"Work Event App","short_name":"WorkEvent","start_url":".","display":"standalone","background_color":"#081120","theme_color":"#0f172a","orientation":"portrait","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2379/2379261.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
+<!-- VỊ TRÍ 1: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO ANDROID (Thay link ảnh của bạn vào chỗ src) -->
+<link rel="manifest" href='data:application/manifest+json,{"name":"Work Event App","short_name":"WorkEvent","start_url":".","display":"standalone","background_color":"#081120","theme_color":"#0f172a","orientation":"portrait","icons":[{"src":"https://sf-static.upanhlaylink.com/img/image_20260521353487910335d99c80a8f8fc03ab4aa9.jpg","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
 
-<!-- CẤU HÌNH ICON RIÊNG CHO IPHONE / SAFARI -->
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2379/2379261.png">
+<!-- VỊ TRÍ 2: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO IPHONE / SAFARI (Thay link ảnh của bạn vào chỗ href) -->
+<link rel="apple-touch-icon" href="https://sf-static.upanhlaylink.com/img/image_20260521353487910335d99c80a8f8fc03ab4aa9.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -500,6 +500,7 @@ textarea {
     <div class="topbar">
         <div class="profile-section" id="profileBtn" title="Bấm để sửa thông tin">
             <div class="avatar-container">
+                <!-- VỊ TRÍ 3: ẢNH ĐẠI DIỆN MẶC ĐỊNH TRONG GIAO DIỆN (Thay link ảnh của bạn vào src) -->
                 <img src="https://cdn-icons-png.flaticon.com/512/2379/2379261.png" class="avatar" id="appAvatar" alt="Avatar">
             </div>
             <div class="profile-info">
@@ -566,8 +567,8 @@ textarea {
     </div>
 
     <div class="bottom">
-        🚀 PWA Mobile App<br>
-        Có thể cài trực tiếp như ứng dụng điện thoại
+        🚀 APP CHẤM CÔNG <br>
+        &COPY; ỨNG DỤNG ĐƯỢC PHÁT TRIỀN BỞI ĐỨC TRƯỜNG 
     </div>
 </div>
 
@@ -593,7 +594,7 @@ textarea {
                 <input type="file" id="uploadAvatar" accept="image/*">
             </div>
             <div>
-                <label>Ảnh nền nền</label>
+                <label>Ảnh nền app</label>
                 <label class="file-custom-btn" for="uploadBg">🌄 Chọn ảnh</label>
                 <input type="file" id="uploadBg" accept="image/*">
             </div>
@@ -853,7 +854,7 @@ resetBgBtn.addEventListener("click", () => {
 loadProfile();
 renderCalendar();
 
-// PWA SYSTEM
+// PWA ENGINE SYSTEM
 let deferredPrompt;
 const installBtn=document.getElementById("installBtn");
 window.addEventListener("beforeinstallprompt",(e)=>{
