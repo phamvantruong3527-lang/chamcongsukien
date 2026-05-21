@@ -1,6 +1,6 @@
 <!-- =========================
    APP MOBILE PWA - CHẤM CÔNG SỰ KIỆN (BẢN CHUẨN - CHỐNG MÉO ẢNH)
-   Full Code Single File - Bản cập nhật 2026
+   Full Code Single File - Đã thay link ảnh mới 2026
 ========================= -->
 
 <!DOCTYPE html>
@@ -10,16 +10,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="theme-color" content="#0f172a"/>
 
-<title>Chấm công </title>
+<title>Work Event App</title>
 
 <!-- FONTS & ICONS -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- VỊ TRÍ 1: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO ANDROID (Thay link ảnh trực tuyến của bạn vào chỗ src nếu muốn) -->
-<link rel="manifest" href='data:application/manifest+json,{"name":"Work Event App","short_name":"WorkEvent","start_url":".","display":"standalone","background_color":"#081120","theme_color":"#0f172a","orientation":"portrait","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2379/2379261.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
+<!-- VỊ TRÍ 1: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO ANDROID (Đã đồng bộ link ảnh mới) -->
+<link rel="manifest" href='data:application/manifest+json,{"name":"Work Event App","short_name":"WorkEvent","start_url":".","display":"standalone","background_color":"#081120","theme_color":"#0f172a","orientation":"portrait","icons":[{"src":"https://sf-static.upanhlaylink.com/img/image_20260521353487910335d99c80a8f8fc03ab4aa9.jpg","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
 
-<!-- VỊ TRÍ 2: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO IPHONE / SAFARI (Thay link ảnh trực tuyến của bạn vào chỗ href nếu muốn) -->
+<!-- VỊ TRÍ 2: CẤU HÌNH ICON RA MÀN HÌNH CHÍNH CHO IPHONE / SAFARI (Đã đồng bộ link ảnh mới) -->
 <link rel="apple-touch-icon" href="https://sf-static.upanhlaylink.com/img/image_20260521353487910335d99c80a8f8fc03ab4aa9.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -108,16 +108,16 @@ body {
     position: relative;
     width: 56px;
     height: 56px;
-    flex-shrink: 0; /* Không cho phép container bóp méo */
+    flex-shrink: 0;
 }
 
 .avatar {
     width: 100%;
     height: 100%;
-    aspect-ratio: 1 / 1; /* Ép tỉ lệ vuông tuyệt đối */
+    aspect-ratio: 1 / 1; /* Cố định tỉ lệ vuông hoàn hảo */
     border-radius: 18px;
-    object-fit: cover; /* Chống méo ảnh: Tự động cắt ảnh vừa khít viền */
-    object-position: center; /* Luôn lấy tâm ảnh làm trung tâm */
+    object-fit: cover; /* CHỐNG MÉO: Tự động bo và cắt bớt ảnh thừa nếu ảnh bị lệch tỉ lệ */
+    object-position: center; /* Luôn giữ tâm ảnh nằm ở chính giữa */
     border: 2px solid var(--primary);
     box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
     background: #1e293b;
@@ -503,7 +503,7 @@ textarea {
     <div class="topbar">
         <div class="profile-section" id="profileBtn" title="Bấm để sửa thông tin">
             <div class="avatar-container">
-                <!-- VỊ TRÍ 3: ẢNH ĐẠI DIỆN MẶC ĐỊNH TRONG GIAO DIỆN (Thay link ảnh trực tuyến của bạn vào src nếu muốn) -->
+                <!-- VỊ TRÍ 3: ẢNH ĐẠI DIỆN MẶC ĐỊNH (Đã thay link ảnh trực tuyến mới của bạn) -->
                 <img src="https://sf-static.upanhlaylink.com/img/image_20260521353487910335d99c80a8f8fc03ab4aa9.jpg" class="avatar" id="appAvatar" alt="Avatar">
             </div>
             <div class="profile-info">
@@ -570,8 +570,8 @@ textarea {
     </div>
 
     <div class="bottom">
-        🚀 Phân mềm chấm công <br>
-        &copy;Được phát triền và ứng dụng bởi Đức Trường 
+        🚀 Phần mềm chấm công <br>
+            &copy;Phần mềm được phát triển và ứng dụng bởi Đức Trường 
     </div>
 </div>
 
@@ -815,7 +815,11 @@ function loadProfile() {
 
     appNameDisplay.innerText = name + " ✏️";
     appSloganDisplay.innerText = slogan;
+    
+    // Nếu người dùng chưa đổi ảnh thủ công trong LocalStorage, app luôn ưu tiên dùng link ảnh mới của bạn
     if (avatar) appAvatar.src = avatar;
+    else appAvatar.src = "https://sf-static.upanhlaylink.com/img/image_20260521353487910335d99c80a8f8fc03ab4aa9.jpg";
+    
     if (bg) document.body.style.setProperty("--bg-image", `url(${bg})`);
 }
 
