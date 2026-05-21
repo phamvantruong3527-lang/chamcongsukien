@@ -1,5 +1,5 @@
 <!-- =========================
-   APP MOBILE PWA - CHẤM CÔNG SỰ KIỆN (BẢN UPDATE LOGIC CHỌN NGÀY)
+   APP MOBILE PWA - CHẤM CÔNG SỰ KIỆN (BẢN TÍCH HỢP ICON MÀN HÌNH CHÍNH)
    Full Code Single File
 ========================= -->
 
@@ -10,13 +10,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="theme-color" content="#0f172a"/>
 
-<title>Chấm công sự kiện</title>
+<title>Work Event App</title>
 
 <!-- FONTS & ICONS -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<link rel="manifest" href="manifest.json">
+<!-- EMBEDDED PWA MANIFEST (CẤU HÌNH ẢNH BÌA / ICON RA MÀN HÌNH CHÍNH) -->
+<link rel="manifest" href='data:application/manifest+json,{"name":"Work Event App","short_name":"WorkEvent","start_url":".","display":"standalone","background_color":"#081120","theme_color":"#0f172a","orientation":"portrait","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2379/2379261.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
+
+<!-- CẤU HÌNH ICON RIÊNG CHO IPHONE / SAFARI -->
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2379/2379261.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
 :root {
@@ -371,7 +377,7 @@ select {
 .active { border: 3px solid var(--primary); }
 .empty { visibility: hidden; }
 
-/* KHU VỰC TIÊU ĐỀ GHI CHÚ & NÚT SỬA CÔNG */
+/* GHI CHÚ & NÚT SỬA */
 .note-card {
     margin-top: 18px;
     padding: 18px;
@@ -392,7 +398,7 @@ select {
 }
 
 .edit-status-btn {
-    display: none; /* Chỉ hiện khi chọn 1 ngày cụ thể */
+    display: none;
     padding: 6px 12px;
     font-size: 12px;
     font-weight: 600;
@@ -560,8 +566,8 @@ textarea {
     </div>
 
     <div class="bottom">
-        🚀 App Chấm Công <br>
-        &copy; Được phát triển và vận hành bởi Đức Trường 
+        🚀 PWA Mobile App<br>
+        Có thể cài trực tiếp như ứng dụng điện thoại
     </div>
 </div>
 
@@ -621,7 +627,6 @@ const dayNames = ["T2","T3","T4","T5","T6","T7","CN"];
 let currentDate = new Date();
 let selectedKey = null;
 
-// Khởi tạo hàng tên thứ
 dayNames.forEach(day=>{
     const div=document.createElement("div");
     div.className="day-name";
@@ -629,7 +634,6 @@ dayNames.forEach(day=>{
     dayNamesContainer.appendChild(div);
 });
 
-// Thêm danh sách tháng
 for(let m=0;m<12;m++){
     const opt=document.createElement("option");
     opt.value=m;
@@ -638,7 +642,6 @@ for(let m=0;m<12;m++){
     monthSelect.appendChild(opt);
 }
 
-// Thêm danh sách năm
 for(let y=currentDate.getFullYear()-1;y<=currentDate.getFullYear()+5;y++){
     const opt=document.createElement("option");
     opt.value=y;
@@ -650,7 +653,6 @@ for(let y=currentDate.getFullYear()-1;y<=currentDate.getFullYear()+5;y++){
 function getData(){ return JSON.parse(localStorage.getItem("work_event_app") || "{}"); }
 function saveData(data){ localStorage.setItem("work_event_app",JSON.stringify(data)); }
 
-// VẼ LỊCH CHẤM CÔNG
 function renderCalendar(){
     calendarGrid.innerHTML="";
     const month=parseInt(monthSelect.value);
@@ -660,7 +662,7 @@ function renderCalendar(){
     noteInput.disabled=true;
     noteInput.value="";
     noteTitle.innerHTML="✨ Chọn ngày để ghi chú";
-    editStatusBtn.style.display = "none"; // Ẩn nút sửa khi đổi tháng/năm
+    editStatusBtn.style.display = "none";
     selectedKey = null;
 
     let firstDay=new Date(year,month,1).getDay()-1;
@@ -689,7 +691,6 @@ function renderCalendar(){
             <div class="note-dot"></div>
         `;
 
-        // SỰ KIỆN CLICK VÀO NGÀY (CHỈ XEM - KHÔNG LÀM MẤT CÔNG NỮA)
         dayDiv.addEventListener("click",()=>{
             document.querySelectorAll(".day").forEach(d=>d.classList.remove("active"));
             dayDiv.classList.add("active");
@@ -698,14 +699,11 @@ function renderCalendar(){
             noteInput.disabled=false;
             noteTitle.innerHTML=`📝 Ghi chú ngày ${day}/${month+1}/${year}`;
             
-            // Lấy data mới nhất để hiển thị ra ô nhập
             const currentData = getData();
             const dayInfo = currentData[key] || { status:"none", note:"" };
             noteInput.value = dayInfo.note || "";
 
-            // Hiện nút "Đổi ca / Sửa" ở bên cạnh
             editStatusBtn.style.display = "block";
-            
             navigator.vibrate?.(15);
         });
 
@@ -714,7 +712,6 @@ function renderCalendar(){
     calculateStats();
 }
 
-// SỰ KIỆN CLICK VÀO NÚT "SỬA CÔNG" BÊN CẠNH
 editStatusBtn.addEventListener("click", () => {
     if(!selectedKey) return;
     
@@ -722,16 +719,12 @@ editStatusBtn.addEventListener("click", () => {
     if(!data[selectedKey]) data[selectedKey] = { status:"none", note:"" };
     
     let info = data[selectedKey];
-    
-    // Tiến hành xoay vòng trạng thái ca làm việc
     let next = (statusCycle.indexOf(info.status) + 1) % statusCycle.length;
     info.status = statusCycle[next];
 
-    // Lưu lại dữ liệu
     data[selectedKey] = info;
     saveData(data);
 
-    // Cập nhật giao diện của ngày đang chọn ngay lập tức
     const activeDay = calendarGrid.querySelector(".day.active");
     if(activeDay) {
         activeDay.className = `day active status-${info.status}`;
@@ -742,7 +735,6 @@ editStatusBtn.addEventListener("click", () => {
     navigator.vibrate?.(30);
 });
 
-// TỰ ĐỘNG LƯU GHI CHÚ KHI GÕ
 noteInput.addEventListener("input",()=>{
     if(!selectedKey) return;
     const data=getData();
@@ -758,7 +750,6 @@ noteInput.addEventListener("input",()=>{
     }
 });
 
-// TÍNH TOÁN SỐ CÔNG
 function calculateStats(){
     const month=parseInt(monthSelect.value);
     const year=parseInt(yearSelect.value);
@@ -786,8 +777,6 @@ function calculateStats(){
 monthSelect.addEventListener("change",renderCalendar);
 yearSelect.addEventListener("change",renderCalendar);
 
-
-// CHẾ ĐỘ THEME
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 let currentTheme = localStorage.getItem("app_theme") || "dark";
 document.documentElement.setAttribute("data-theme", currentTheme);
@@ -801,8 +790,6 @@ themeToggleBtn.addEventListener("click", () => {
 });
 function updateThemeButtonIcon() { themeToggleBtn.innerText = currentTheme === "dark" ? "☀️" : "🌙"; }
 
-
-// THIẾT LẬP CÁ NHÂN
 const profileBtn = document.getElementById("profileBtn");
 const profileModal = document.getElementById("profileModal");
 const closeModalBtn = document.getElementById("closeModalBtn");
@@ -866,7 +853,6 @@ resetBgBtn.addEventListener("click", () => {
 loadProfile();
 renderCalendar();
 
-
 // PWA SYSTEM
 let deferredPrompt;
 const installBtn=document.getElementById("installBtn");
@@ -884,7 +870,7 @@ installBtn.addEventListener("click",async()=>{
 
 if("serviceWorker" in navigator){
     const swCode=`
-    const CACHE_NAME='work-event-cache-v3';
+    const CACHE_NAME='work-event-cache-v4';
     self.addEventListener('install',event=>{
         self.skipWaiting();
         event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(['./'])));
